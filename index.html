@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PriceScout - Find the Best Deal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366F1;
+      --primary-dark: #4F46E5;
+      --secondary: #10B981;
+      --accent: #F59E0B;
+      --danger: #EF4444;
+      --bg: #0F0F0F;
+      --card-bg: #1A1A1A;
+      --surface: #252525;
+      --text: #FFFFFF;
+      --text-muted: #9CA3AF;
+      --border: #333;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+    .header p { color: var(--text-muted); font-size: 15px; }
+
+    .search-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .search-input-wrapper {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      color: var(--text);
+      font-size: 16px;
+      font-family: inherit;
+      transition: all 0.3s;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+    }
+
+    .search-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      padding: 18px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .search-btn:hover { background: var(--primary-dark); transform: scale(1.02); }
+    .search-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .filter-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-right: 8px;
+    }
+
+    .filter-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .filter-chip:hover { border-color: var(--primary); }
+    .filter-chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .retailers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .retailer-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .retailer-toggle input { display: none; }
+    .retailer-toggle.checked {
+      border-color: var(--secondary);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .retailer-toggle .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+    .retailer-toggle.checked .dot { background: var(--secondary); }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .results-count {
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+    .results-count strong { color: var(--text); }
+
+    .sort-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .product-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 100px 1fr auto;
+      gap: 16px;
+      animation: slideUp 0.4s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .product-image {
+      width: 100px;
+      height: 100px;
+      border-radius: 12px;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+
+    .product-info { min-width: 0; }
+
+    .product-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .product-specs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .spec-tag {
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .product-rating {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .star { color: var(--accent); }
+    .rating-count { color: var(--text-muted); }
+
+    .product-price-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .product-price {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    .product-original-price {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .product-discount {
+      font-size: 12px;
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .score-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .retailer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .platform-flipkart { color: #2874F0; }
+    .platform-amazon { color: #FF9900; }
+    .platform-myntra { color: #FF3F6C; }
+    .platform-meesho { color: #F43397; }
+    .platform-blinkit { color: #FFD600; }
+    .platform-zepto { color: #8C63FF; }
+    .platform-ajio { color: #D6266F; }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--surface);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading p { color: var(--text-muted); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .empty-state span { font-size: 60px; display: block; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 20px; margin-bottom: 8px; }
+    .empty-state p { color: var(--text-muted); }
+
+    .info-banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .info-banner span { font-size: 24px; }
+    .info-banner p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+
+    .how-it-works {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      border: 1px solid var(--border);
+    }
+    .how-it-works h3 { margin-bottom: 16px; font-size: 18px; }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+    }
+    .step {
+      text-align: center;
+      padding: 16px;
+    }
+    .step-num {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      margin: 0 auto 10px;
+    }
+    .step h4 { font-size: 14px; margin-bottom: 4px; }
+    .step p { font-size: 12px; color: var(--text-muted); }
+
+    @media (max-width: 600px) {
+      .product-card {
+        grid-template-columns: 80px 1fr;
+      }
+      .product-price-section {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        margin-top: 8px;
+      }
+      .search-input-wrapper { flex-direction: column; }
+      .header h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔍 PriceScout</h1>
+      <p>Find the best deals across all shopping apps</p>
+    </div>
+
+    <div class="info-banner">
+      <span>ℹ️</span>
+      <p><strong>Demo Mode:</strong> This app shows how the PriceScout UI works. Enter a product name to see a live comparison demo with realistic mock data from multiple retailers.</p>
+    </div>
+
+    <div class="search-card">
+      <div class="search-input-wrapper">
+        <input type="text" class="search-input" id="searchInput" placeholder="What are you looking for? (e.g., iPhone 15, Nike shoes, Wireless headphones)">
+        <button class="search-btn" id="searchBtn" onclick="searchProducts()">Search</button>
+      </div>
+
+      <div class="filters">
+        <span class="filter-label">Category:</span>
+        <label class="filter-chip active" onclick="setCategory(this, 'all')">All</label>
+        <label class="filter-chip" onclick="setCategory(this, 'electronics')">📱 Electronics</label>
+        <label class="filter-chip" onclick="setCategory(this, 'fashion')">👕        <label class="filter-chip" onclick="setCategory(this, 'fashion')">👕 Fashion</label>
+        <label class="filter-chip" onclick="setCategory(this, 'grocery')">🛒 Grocery</label>
+        <label class="filter-chip" onclick="setCategory(this, 'home')">🏠 Home</label>
+      </div>
+
+      <div class="retailers">
+        <label class="retailer-toggle checked" onclick="toggleRetailer(this)">
+          <span class="dot"></span>
+          Flipkart
+        </label>
+        <label class="retailer-toggle checked" onclick="toggleRetailer(this)">
+          <span class="dot"></span>
+          Amazon
+        </label>
+        <label class="retailer-toggle checked" onclick="toggleRetailer(this)">
+          <span class="dot"></span>
+          Myntra
+        </label>
+        <label class="retailer-toggle checked" onclick="toggleRetailer(this)">
+          <span class="dot"></span>
+          Meesho
+        </label>
+        <label class="retailer-toggle" onclick="toggleRetailer(this)">
+          <span class="dot"></span>
+          Blinkit
+        </label>
+        <label class="retailer-toggle" onclick="toggleRetailer(this)">
+          <span class="dot"></span>
+          Zepto
+        </label>
+        <label class="retailer-toggle" onclick="toggleRetailer(this)">
+          <span class="dot"></span>
+          Ajio
+        </label>
+      </div>
+    </div>
+
+    <div id="resultsSection" style="display: none;">
+      <div class="results-header">
+        <div class="results-count">Showing <strong id="resultCount">0</strong> products sorted by <strong>Best Score</strong></div>
+        <select class="sort-select" id="sortSelect" onchange="sortResults()">
+          <option value="score">Best Score</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+          <option value="rating">Highest Rated</option>
+          <option value="discount">Biggest Discount</option>
+        </select>
+      </div>
+      <div id="productsList"></div>
+    </div>
+
+    <div id="loadingSection" class="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p>Searching across all retailers...</p>
+    </div>
+
+    <div id="emptyState" class="empty-state">
+      <span>🛍️</span>
+      <h3>Search for products</h3>
+      <p>Enter a product name above to compare prices across multiple retailers</p>
+    </div>
+
+    <div class="how-it-works">
+      <h3>How PriceScout Works</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h4>Enter Product</h4>
+          <p>Search for any product you're looking to buy</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h4>We Compare</h4>
+          <p>We search Flipkart, Amazon, Myntra & more</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h4>Smart Scoring</h4>
+          <p>AI scores based on price, rating & specs</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <h4>Best Deal</h4>
+          <p>Get the best product at the best price</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Retailers configuration
+    const retailers = [
+      { id: 'flipkart', name: 'Flipkart', color: '#2874F0', logo: '🛒' },
+      { id: 'amazon', name: 'Amazon', color: '#FF9900', logo: '📦' },
+      { id: 'myntra', name: 'Myntra', color: '#FF3F6C', logo: '👕' },
+      { id: 'meesho', name: 'Meesho', color: '#F43397', logo: '🛍️' },
+      { id: 'blinkit', name: 'Blinkit', color: '#FFD600', logo: '⚡' },
+      { id: 'zepto', name: 'Zepto', color: '#8C63FF', logo: '🚀' },
+      { id: 'ajio', name: 'Ajio', color: '#D6266F', logo: '👟' }
+    ];
+
+    // Sample product data for demo
+    const productDatabase = {
+      'iphone 15': [
+        { name: 'Apple iPhone 15 (Blue, 128GB)', specs: ['128GB', 'A16 Bionic', '48MP Camera'], rating: 4.6, reviews: 12400, originalPrice: 79900, price: 66999, discount: 16, retailer: 'flipkart' },
+        { name: 'Apple iPhone 15 (Pink, 128GB)', specs: ['128GB', 'A16 Bionic', '48MP Camera'], rating: 4.5, reviews: 8900, originalPrice: 79900, price: 65490, discount: 18, retailer: 'amazon' },
+        { name: 'Apple iPhone 15 (Black, 256GB)', specs: ['256GB', 'A16 Bionic', '48MP Camera'], rating: 4.7, reviews: 5600, originalPrice: 89900, price: 74999, discount: 17, retailer: 'flipkart' },
+        { name: 'Apple iPhone 15 (Green, 128GB)', specs: ['128GB', 'A16 Bionic', '48MP Camera'], rating: 4.4, reviews: 3200, originalPrice: 79900, price: 66200, discount: 17, retailer: 'myntra' },
+        { name: 'Apple iPhone 15 (128GB)', specs: ['128GB', 'A16 Bionic', '48MP Camera'], rating: 4.5, reviews: 15000, originalPrice: 79900, price: 67999, discount: 15, retailer: 'amazon' }
+      ],
+      'airpods pro': [
+        { name: 'Apple AirPods Pro (2nd Gen)', specs: ['Active Noise Cancellation', 'MagSafe Charging'], rating: 4.7, reviews: 45000, originalPrice: 24900, price: 18999, discount: 24, retailer: 'amazon' },
+        { name: 'Apple AirPods Pro with USB-C', specs: ['Active Noise Cancellation', 'USB-C Charging'], rating: 4.8, reviews: 12000, originalPrice: 24900, price: 19990, discount: 20, retailer: 'flipkart' },
+        { name: 'Apple AirPods Pro 2nd Gen', specs: ['Active Noise Cancellation', 'MagSafe Case'], rating: 4.6, reviews: 28000, originalPrice: 24900, price: 19499, discount: 22, retailer: 'myntra' },
+        { name: 'Apple AirPods Pro', specs: ['Active Noise Cancellation', 'Wireless Charging'], rating: 4.5, reviews: 8900, originalPrice: 24900, price: 20900, discount: 16, retailer: 'ajio' }
+      ],
+      'samsung galaxy s24': [
+        { name: 'Samsung Galaxy S24 (Violet, 256GB)', specs: ['8GB RAM', 'Exynos 2400', '50MP'], rating: 4.5, reviews: 5600, originalPrice: 79999, price: 69999, discount: 13, retailer: 'flipkart' },
+        { name: 'Samsung Galaxy S24 Ultra', specs: ['12GB RAM', 'Snapdragon 8 Gen 3', '200MP'], rating: 4.7, reviews: 8900, originalPrice: 129999, price: 114999, discount: 12, retailer: 'amazon' },
+        { name: 'Samsung Galaxy S24 (Black, 128GB)', specs: ['8GB RAM', 'Exynos 2400', '50MP'], rating: 4.4, reviews: 3200, originalPrice: 79999, price: 71999, discount: 10, retailer: 'flipkart' },
+        { name: 'Samsung Galaxy S24 Plus', specs: ['12GB RAM', 'Exynos 2400', '50MP'], rating: 4.6, reviews: 4100, originalPrice: 99999, price: 84999, discount: 15, retailer: 'amazon' }
+      ],
+      'nike shoes': [
+        { name: 'Nike Air Max SC Mens Running Shoes', specs: ['Size 9', 'Comfort', 'Sport'], rating: 4.4, reviews: 2300, originalPrice: 5995, price: 3597, discount: 40, retailer: 'myntra' },
+        { name: 'Nike Air Jordan 1 Low', specs: ['Size 10', 'Casual', 'Classic'], rating: 4.6, reviews: 890, originalPrice: 8995, price: 6746, discount: 25, retailer: 'flipkart' },
+        { name: 'Nike Air Force 1', specs: ['Size 8', 'White', 'Classic'], rating: 4.7, reviews: 12000, originalPrice: 7999, price: 5999, discount: 25, retailer: 'amazon' },
+        { name: 'Nike Revolution 6 Running Shoes', specs: ['Size 11', 'Men', 'Road'], rating: 4.3, reviews: 5600, originalPrice: 4995, price: 2997, discount: 40, retailer: 'myntra' },
+        { name: 'Nike Air Max 90', specs: ['Size 9', 'Sport', 'Original'], rating: 4.5, reviews: 3400, originalPrice: 9995, price: 6996, discount: 30, retailer: 'ajio' }
+      ],
+      'boat headphones': [
+        { name: 'Boat Rockerz 510 Bluetooth Headphones', specs: ['50mm Driver', '20hrs Battery', 'Deep Bass'], rating: 4.3, reviews: 45000, originalPrice: 3990, price: 1499, discount: 62, retailer: 'amazon' },
+        { name: 'Boat Nirvana 751 ANC', specs: ['Hybrid ANC', '65hrs Battery', 'Premium'], rating: 4.5, reviews: 12000, originalPrice: 7990, price: 3499, discount: 56, retailer: 'flipkart' },
+        { name: 'Boat Rockerz 450 Pro', specs: ['40mm Driver', '15hrs Battery'], rating: 4.2, reviews: 28000, originalPrice: 2990, price: 1199, discount: 60, retailer: 'meesho' },
+        { name: 'Boat Airdopes 700 ANC', specs: ['ANC', '40hrs Total', 'Low Latency'], rating: 4.4, reviews: 8900, originalPrice: 4990, price: 2499, discount: 50, retailer: 'flipkart' }
+      ],
+      'default': [
+        { name: 'Premium Wireless Earbuds', specs: ['ANC', '30hr Battery', 'Fast Charging'], rating: 4.5, reviews: 12000, originalPrice: 7999, price: 3999, discount: 50, retailer: 'flipkart' },
+        { name: 'Smart Watch Series 8', specs: ['1.4" Display', 'Heart Rate', 'GPS'], rating: 4.4, reviews: 8900, originalPrice: 12999, price: 7999, discount: 38, retailer: 'amazon' },
+        { name: 'Bluetooth Speaker Portable', specs: ['10W RMS', 'Waterproof', '12hrs Playback'], rating: 4.3, reviews: 23000, originalPrice: 3999, price: 1999, discount: 50, retailer: 'flipkart' },
+        { name: 'Laptop Stand Adjustable', specs: ['Aluminum', 'Ergonomic', 'Universal'], rating: 4.6, reviews: 5600, originalPrice: 2999, price: 899, discount: 70, retailer: 'amazon' },
+        { name: 'USB-C Hub 7 in 1', specs: ['4K HDMI', '100W PD', 'SD Card Reader'], rating: 4.4, reviews: 12000, originalPrice: 3999, price: 1599, discount: 60, retailer: 'meesho' },
+        { name: 'Mechanical Keyboard RGB', specs: ['Blue Switches', 'RGB Backlit', 'USB-C'], rating: 4.5, reviews: 7800, originalPrice: 5999, price: 3499, discount: 42, retailer: 'flipkart' }
+      ]
+    };
+
+    let currentResults = [];
+    let selectedCategory = 'all';
+    let selectedRetailers = ['flipkart', 'amazon', 'myntra', 'meesho'];
+
+    // Handle Enter key
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') searchProducts();
+    });
+
+    function setCategory(el, category) {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      selectedCategory = category;
+      if (currentResults.length > 0) filterResults();
+    }
+
+    function toggleRetailer(el) {
+      el.classList.toggle('checked');
+      const name = el.textContent.trim();
+      const retailer = retailers.find(r => r.name === name);
+      if (el.classList.contains('checked')) {
+        if (!selectedRetailers.includes(retailer.id)) selectedRetailers.push(retailer.id);
+      } else {
+        selectedRetailers = selectedRetailers.filter(r => r !== retailer.id);
+      }
+      if (currentResults.length > 0) filterResults();
+    }
+
+    function searchProducts() {
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      if (!query) {
+        alert('Please enter a product name');
+        return;
+      }
+
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('resultsSection').style.display = 'none';
+      document.getElementById('loadingSection').style.display = 'block';
+
+      // Simulate API call delay
+      setTimeout(() => {
+        // Find matching products or use default
+        let products = productDatabase[query];
+        if (!products) {
+          // Use default products with modified names based on query
+          products = productDatabase['default'].map(p => ({
+            ...p,
+            name: query.charAt(0).toUpperCase() + query.slice(1) + ' ' + p.name
+          }));
+        }
+
+        // Add more variations for realism
+        currentResults = generateProductVariations(products, query);
+        
+        document.getElementById('loadingSection').style.display = 'none';
+        document.getElementById('resultsSection').style.display = 'block';
+        
+        filterResults();
+      }, 1500);
+    }
+
+    function generateProductVariations(products, query) {
+      let variations = [];
+      
+      products.forEach((product, idx) => {
+        // Add this product
+        variations.push({
+          ...product,
+          id: idx,
+          score: calculateScore(product)
+        });
+
+        // Add variations from other retailers
+        retailers.filter(r => r.id !== product.retailer).forEach(retailer => {
+          if (Math.random() > 0.4) {
+            const priceVariation = (Math.random() - 0.5) * 0.15;
+            const newPrice = Math.round(product.price * (1 + priceVariation));
+            const newOriginal = Math.round(product.originalPrice * (1 + priceVariation * 0.5));
+            
+            variations.push({
+              ...product,
+              id: variations.length,
+              name: product.name,
+              retailer: retailer.id,
+              price: newPrice,
+              originalPrice: newOriginal,
+              discount: Math.round((1 - newPrice / newOriginal) * 100),
+              rating: Math.round((product.rating + (Math.random() - 0.5) * 0.4) * 10) / 10,
+              reviews: Math.round(product.reviews * (0.5 + Math.random())),
+              score: 0 // will be calculated
+            });
+            variations[variations.length - 1].score = calculateScore(variations[variations.length - 1]);
+          }
+        });
+      });
+
+      return variations;
+    }
+
+    function calculateScore(product) {
+      // Smart scoring algorithm
+      let score = 50; // base score
+
+      // Price score (30 points max) - lower price = higher score
+      const avgPrice = 5000;
+      if (product.price < avgPrice) score += 15;
+      else score += Math.max(0, 15 - (product.price - avgPrice) / 500);
+
+      // Discount score (15 points max)
+      score += Math.min(15, product.discount / 4);
+
+      // Rating score (20 points max)
+      score += product.rating * 4;
+
+      // Reviews score (10 points max) - more reviews = more reliable
+      score += Math.min(10, Math.log10(product.reviews + 1) * 2);
+
+      // Popular retailer bonus (5 points)
+      const popularRetailers = ['flipkart', 'amazon'];
+      if (popularRetailers.includes(product.retailer)) score += 5;
+
+      return Math.min(100, Math.round(score));
+    }
+
+    function filterResults() {
+      let filtered = currentResults.filter(p => selectedRetailers.includes(p.retailer));
+      
+      // Apply category filtering (demo - just filters by some logic)
+      if (selectedCategory !== 'all') {
+        // In real app, would filter by category
+        filtered = filtered.slice(0, 5);
+      }
+
+      document.getElementById('resultCount').textContent = filtered.length;
+      currentResults = filtered;
+      sortResults();
+    }
+
+    function sortResults() {
+      const sortBy = document.getElementById('sortSelect').value;
+      let sorted = [...currentResults];
+
+      switch (sortBy) {
+        case 'score':
+          sorted.sort((a, b) => b.score - a.score);
+          break;
+        case 'price-low':
+          sorted.sort((a, b) => a.price - b.price);
+          break;
+        case 'price-high':
+          sorted.sort((a, b) => b.price - a.price);
+          break;
+        case 'rating':
+          sorted.sort((a, b) => b.rating - a.rating);
+          break;
+        case 'discount':
+          sorted.sort((a, b) => b.discount - a.discount);
+          break;
+      }
+
+      renderProducts(sorted);
+    }
+
+    function renderProducts(products) {
+      const container = document.getElementById('productsList');
+      
+      container.innerHTML = products.map((product, idx) => {
+        const retailer = retailers.find(r => r.id === product.retailer);
+        const delay = idx * 0.05;
+        
+        return `
+          <div class="product-card" style="animation-delay: ${delay}s">
+            <div class="product-image">${getProductEmoji(product.name)}</div>
+            <div class="product-info">
+              <div class="product-title">${product.name}</div>
+              <div class="product-specs">
+                ${product.specs.map(s => `<span class="spec-tag">${s}</span>`).join('')}
+              </div>
+              <div class="product-rating">
+                <span class="star">★</span>
+                <strong>${product.rating}</strong>
+                <span class="rating-count">(${formatNumber(product.reviews)} reviews)</span>
+                <span class="retailer-badge platform-${product.retailer}">${retailer.logo} ${retailer.name}</span>
+              </div>
+            </div>
+            <div class="product-price-section">
+              <div>
+                <div class="product-price">₹${formatNumber(product.price)}</div>
+                <div class="product-original-price">₹${formatNumber(product.originalPrice)}</div>
+                <div class="product-discount">${product.discount}% OFF</div>
+              </div>
+              <div class="score-badge">
+                <span>⭐</span>
+                ${product.score}/100
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getProductEmoji(name) {
+      const nameLower = name.toLowerCase();
+      if (nameLower.includes('phone') || nameLower.includes('iphone') || nameLower.includes('samsung') || nameLower.includes('galaxy')) return '📱';
+      if (nameLower.includes('airpod') || nameLower.includes('headphone') || nameLower.includes('earbud')) return '🎧';
+      if (nameLower.includes('shoe') || nameLower.includes('nike') || nameLower.includes('sneaker')) return '👟';
+      if (nameLower.includes('watch') || nameLower.includes('smart')) return '⌚';
+      if (nameLower.includes('laptop') || nameLower.includes('computer')) return '💻';
+      if (nameLower.includes('speaker') || nameLower.includes('bluetooth')) return '🔊';
+      if (nameLower.includes('keyboard')) return '⌨️';
+      if (nameLower.includes('camera')) return '📷';
+      if (nameLower.includes('bag') || nameLower.includes('backpack')) return '🎒';
+      if (nameLower.includes('watch') || nameLower.includes('time')) return '⌚';
+      return '📦';
+    }
+
+    function formatNumber(num) {
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+      return num.toString();
+    }
+  </script>
+</body>
+</html>
